@@ -6,9 +6,9 @@ import numpy as np
 print(sd.query_devices());
 
 SAMPLE_RATE = 48000;
-DEVICE_ID = 2 #Blackhole 2ch
+# DEVICE_ID = 2 #Blackhole 2ch
 
-# DEVICE_ID = 3 #MacBook Mikrofon
+DEVICE_ID = 3 #MacBook Mikrofon
 BIT_LENGTH = 0.005
 PREAMBLE = [1,0] * 8
 SYNC = [1,1,0,1,0,0,1,0]
@@ -136,8 +136,13 @@ def audio_callback(indata, frames, time, status):
         if rms < THRESHOLD :
             continue
 
+        # print(rms)
+
         power_0 = goertzel(window, FREQ_0, SAMPLE_RATE)
         power_1 = goertzel(window, FREQ_1, SAMPLE_RATE)
+
+        print("Power 0:",power_0)
+        print("Power 1:",power_1)
 
         bit = 0 if power_0 > power_1 else 1
 
