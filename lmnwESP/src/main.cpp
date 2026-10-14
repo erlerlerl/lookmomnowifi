@@ -19,7 +19,7 @@ void setupI2S() {
 
     config.sample_rate = SAMPLE_RATE;
     config.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT;
-    config.channel_format = I2S_CHANNEL_FMT_ONLY_LEFT;
+    config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
     config.communication_format = I2S_COMM_FORMAT_I2S;
     config.intr_alloc_flags = ESP_INTR_FLAG_LEVEL1;
     config.dma_buf_count = 8;
