@@ -5,7 +5,7 @@ s.reboot;
 )
 s.meter.window.alwaysOnTop_(true);
 
-~encoder.(2000, ~textToBits.("Hi") , 50, 200)
+~encoder.(2000, ~textToBits.("Hello Network!") , 50, 200)
 
 ~encoder.(2000, ~textToBits.("This is a test me!") , 5, 200)
 
@@ -63,6 +63,8 @@ s.meter.window.alwaysOnTop_(true);
 
 	lengthBits = ~byteToBits.(payload.size);
 	checksum = ~checkSumBits.(payload);
+	"Length:".postln;
+	payload.size.postln;
 
 	preamble ++ sync ++ lengthBits ++ payload ++ checksum;
 

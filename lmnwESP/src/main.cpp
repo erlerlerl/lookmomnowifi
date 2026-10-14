@@ -160,6 +160,86 @@ bool hasPacketHeader(const int *bits, int bitCount) {
     return false;
 }
 
+int bitsToInt(const int *bits, int start, int count) {
+    int value = 0;
+
+    for (int i = 0; i < count; i++) {
+        value = (value << 1) | bits[start+i];
+    }
+
+    return value;
+}
+
+int findPacketHeader(const int *bits, int bitCount) {
+    constexpr int HEADER_LENGTH = PREAMBLE_LENGTH + SYNC_LENGTH;
+
+    if (bitCount < HEADER_LENGTH) {
+        return -1;
+    }
+
+    for (int start = 0; start <= bitCount - HEADER_LENGTH; start++) {
+        bool match = true;
+
+        //check preamble
+        for (int j = 0; j < PREAMBLE_LENGTH; j++) {
+            if (bits[start + j] != PREAMBLE[j]) {
+                match = false;
+                break;
+          }
+        }
+
+        if (!match) {
+            continue;
+        }
+
+        for (int j = 0; j < SYNC_LENGTH; j++) {
+            if (bits[start + PREAMBLE_LENGTH + j] != SYNC[j]) {
+                match = false;
+                break;
+          }
+        }
+
+        if (match) {
+            return start;
+        }
+
+    }
+
+    return -1;
+}
+
+int calculateChecksum(const int *bits, int start, int length) {
+    int checksum = 0;
+
+    for (int offset = 0; offset < length; offset += 8) {
+        int groupLength = length - offset;
+
+        if (groupLength > 8) {
+            groupLength = 8;
+        }
+
+        int value = bitsToInt(bits, start + offset, groupLength);
+
+        if (groupLength < 8) {
+            value <<= (8-groupLength);
+        }
+
+        checksum ^= value;
+    }
+
+    return checksum;
+}
+
+void printPayloadAsAscii(const int *bits, int start, int length) {
+    Serial.print("Message: ");
+
+    for (int offset = 0; offset + 8 <= length; offset += 8) {
+        int value = bitsToInt(bits, start + offset, 8);
+        Serial.write((uint8_t)value);
+    }
+    Serial.println();
+}
+
 void setup() {
     Serial.begin(115200);
     delay(500);
@@ -206,8 +286,44 @@ void loop() {
                     }
                     // Serial.printf("0: %..2f | 1: %.2f | Bit: %d\n", power0, power1, bit);
                     // Serial.printf("Bit: %d | Gesamt: %d\n", bit, receivedBitCount);
-                    if (hasPacketHeader(receivedBits, receivedBitCount)) {
-                        Serial.printf("Packet-Header registered!");
+                    // if (hasPacketHeader(receivedBits, receivedBitCount)) {
+                    //     Serial.printf("Packet-Header registered!");
+                    // }
+                    int headerStart =
+                        findPacketHeader(receivedBits, receivedBitCount);
+
+                    if (headerStart >= 0) {
+                      int lengthStart =
+                          headerStart + PREAMBLE_LENGTH + SYNC_LENGTH;
+
+                      if (receivedBitCount >= lengthStart + 8){
+                            int payloadLength = bitsToInt(receivedBits, lengthStart, 8);
+
+                            int payloadStart = lengthStart + 8;
+                            int payloadEnd = payloadStart + payloadLength;
+                            int checksumEnd = payloadEnd + 8;
+
+                            if (checksumEnd <= receivedBitCount) {
+                              int expectedChecksum = calculateChecksum(
+                                  receivedBits, payloadStart, payloadLength);
+
+                              int receivedChecksum =
+                                  bitsToInt(receivedBits, payloadEnd, 8);
+
+                              if (expectedChecksum == receivedChecksum) {
+                                  Serial.println("CheckSum OK!");
+                                  printPayloadAsAscii(receivedBits, payloadStart, payloadLength);
+                                } else {
+                                  Serial.printf("Checksum ERROR! Expected: %02X, received: %02X\n", expectedChecksum, receivedChecksum);
+                              }
+
+                                Serial.printf("Full Packet registered.\n");
+                            } else {
+                                Serial.printf("Packet unfinished.\n");
+                            }
+
+                            // Serial.printf("Packet-Header registered! Payload Length: %d Bit\n", payloadLength);
+                        }
                     }
                   }
             }
