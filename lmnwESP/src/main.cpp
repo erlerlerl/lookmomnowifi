@@ -32,6 +32,9 @@ const int PREAMBLE[PREAMBLE_LENGTH] = {
 1,0,1,0,1,0,1,0
 };
 
+constexpr int SYNC_LENGTH = 8;
+const int SYNC[SYNC_LENGTH] = {1,1,0,1,0,0,1,0};
+
 
 void setupI2S() {
     i2s_config_t config = {};
@@ -119,6 +122,44 @@ bool hasPreamble(const int *bits, int bitCount) {
     return false;
 }
 
+bool hasPacketHeader(const int *bits, int bitCount) {
+    constexpr int HEADER_LENGTH = PREAMBLE_LENGTH + SYNC_LENGTH;
+
+    if (bitCount < HEADER_LENGTH) {
+        return false;
+    }
+
+    for (int start = 0; start <= bitCount - HEADER_LENGTH; start++) {
+        bool match = true;
+
+        //check preamble
+        for (int j = 0; j < PREAMBLE_LENGTH; j++) {
+            if (bits[start + j] != PREAMBLE[j]) {
+                match = false;
+                break;
+          }
+        }
+
+        if (!match) {
+            continue;
+        }
+
+        for (int j = 0; j < SYNC_LENGTH; j++) {
+            if (bits[start + PREAMBLE_LENGTH + j] != SYNC[j]) {
+                match = false;
+                break;
+          }
+        }
+
+        if (match) {
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
 void setup() {
     Serial.begin(115200);
     delay(500);
@@ -165,8 +206,8 @@ void loop() {
                     }
                     // Serial.printf("0: %..2f | 1: %.2f | Bit: %d\n", power0, power1, bit);
                     // Serial.printf("Bit: %d | Gesamt: %d\n", bit, receivedBitCount);
-                    if (hasPreamble(receivedBits, receivedBitCount)) {
-                        Serial.printf("Preamble registered!");
+                    if (hasPacketHeader(receivedBits, receivedBitCount)) {
+                        Serial.printf("Packet-Header registered!");
                     }
                   }
             }

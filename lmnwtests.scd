@@ -5,7 +5,7 @@ s.reboot;
 )
 s.meter.window.alwaysOnTop_(true);
 
-~encoder.(2000, ~textToBits.("Look Mom No Wifi!!!") , 50, 200)
+~encoder.(2000, ~textToBits.("Hi") , 50, 200)
 
 ~encoder.(2000, ~textToBits.("This is a test me!") , 5, 200)
 
