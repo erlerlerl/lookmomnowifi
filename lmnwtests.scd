@@ -1,14 +1,17 @@
-(
-s.options.outDevice = "BlackHole 2ch";
+(s.options.outDevice = "BlackHole 2ch";
 s.options.sampleRate = 48000;
-// s.options.outDevice = "MacBook Pro-Lautsprecher";
+s.options.outDevice = "MacBook Pro-Lautsprecher";
 s.reboot;
 )
 s.meter.window.alwaysOnTop_(true);
 
-~encoder.(2000, ~textToBits.("Look Mom No Wifi!!!") , 5, 200)
+~encoder.(2000, ~textToBits.("Look Mom No Wifi!!!") , 50, 200)
 
 ~encoder.(2000, ~textToBits.("This is a test me!") , 5, 200)
+
+(
+{SinOsc.ar(2200)}.play;
+)
 
 
 (
@@ -99,6 +102,9 @@ s.meter.window.alwaysOnTop_(true);
 	}).add;
 
     buf = Buffer.loadCollection(s, packet);
+
+	"Sending Packet:".postln;
+	packet.postln;
 
     buf.loadToFloatArray(action: { |data|
         Synth(\player, [
