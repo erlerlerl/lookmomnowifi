@@ -66,9 +66,19 @@ void loop() {
 
     esp_err_t err = i2s_read(I2S_PORT, inputBuffer, sizeof(inputBuffer),
                              &bytesRead, portMAX_DELAY);
+
+    static unsigned long lastPrint = 0;
+
+    if(millis() - lastPrint >= 1000){
+        lastPrint = millis();
+
+        Serial.printf("Read: %u bytes, error: %d\n", (unsigned) bytesRead, (int) err);
+    }
+
     if (err != ESP_OK || bytesRead == 0) {
         return;
     }
+
 
     size_t samples = bytesRead / sizeof(int32_t);
 
