@@ -26,6 +26,12 @@ constexpr int MAX_RECEIVED_BITS = 4096;
 int receivedBits[MAX_RECEIVED_BITS];
 int receivedBitCount = 0;
 
+constexpr int PREAMBLE_LENGTH = 16;
+const int PREAMBLE[PREAMBLE_LENGTH] = {
+1,0,1,0,1,0,1,0,
+1,0,1,0,1,0,1,0
+};
+
 
 void setupI2S() {
     i2s_config_t config = {};
@@ -92,6 +98,27 @@ float goertzel(const float *samples, int count, float frequency) {
     return s1 * s1 + s2 * s2 - coeff * s1 * s2;
 }
 
+bool hasPreamble(const int *bits, int bitCount) {
+    if (bitCount < PREAMBLE_LENGTH) {
+        return false;
+    }
+    for (int start = 0; start <= bitCount < PREAMBLE_LENGTH; start++) {
+        bool match = true;
+
+        for (int j = 0; j < PREAMBLE_LENGTH; j++) {
+            if (bits[start + j] != PREAMBLE[j]) {
+                match = false;
+                break;
+          }
+        }
+
+        if (match) {
+            return true;
+        }
+  }
+    return false;
+}
+
 void setup() {
     Serial.begin(115200);
     delay(500);
@@ -137,7 +164,10 @@ void loop() {
                         receivedBitCount++;
                     }
                     // Serial.printf("0: %..2f | 1: %.2f | Bit: %d\n", power0, power1, bit);
-                    Serial.printf("Bit: %d | Gesamt: %d\n", bit, receivedBitCount);
+                    // Serial.printf("Bit: %d | Gesamt: %d\n", bit, receivedBitCount);
+                    if (hasPreamble(receivedBits, receivedBitCount)) {
+                        Serial.printf("Preamble registered!");
+                    }
                   }
             }
             windowIndex = 0;
