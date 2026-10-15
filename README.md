@@ -49,8 +49,7 @@ After the payload the message is concluded with a checksum for obvious reasons.
 
 ## Network Characteristics
 
-
-
+*under construction*
 
 ## Hardware Plans
 
@@ -58,7 +57,12 @@ The individual nodes of the network will be build from an esp32 MCU with a MAX98
 
 ## TODO
 
-- [ ] Get acoustic transmission working
+- [x] Get acoustic transmission working
+- [x] Build test node
 - [ ] Build Nodes
 - [ ] Combine Decoding and Encoding into single ESP32 code
 - [ ] Make Sine-Wavetables for data encoding
+- [ ] Write autocalibration for rms / filter threshholds 
+- [ ] Refactor Packet decoding for virtual packets
+- [ ] Write audio sender 
+- [ ] Implement simple scheduling
