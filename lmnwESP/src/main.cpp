@@ -1,10 +1,14 @@
 #include <Arduino.h>
 #include "driver/i2s.h"
 
+// Ports
+
 constexpr int I2S_BCLK = 26;
 constexpr int I2S_WS = 25;
 constexpr int I2S_DIN = 33;
 constexpr int I2S_DOUT = 22;
+
+// General Setup
 
 constexpr i2s_port_t I2S_PORT = I2S_NUM_0;
 constexpr int FRAMES = 256;
@@ -15,16 +19,22 @@ constexpr int WINDOW_SIZE = SAMPLE_RATE * BITLENGTH / 1000;
 float windowBuffer[WINDOW_SIZE];
 int windowIndex = 0;
 
+// Audio RX Stuff
+
 constexpr float THRESHOLD = 0.01f;
 constexpr float POWER_THRESHOLD = 100.0f;
 
 constexpr float FREQ_0 = 1800.f;
 constexpr float FREQ_1 = 2200.f;
 
+// Packet RX Stuff
+
 constexpr int MAX_RECEIVED_BITS = 4096;
 
 int receivedBits[MAX_RECEIVED_BITS];
 int receivedBitCount = 0;
+
+// Packet Information General
 
 constexpr int PREAMBLE_LENGTH = 16;
 const int PREAMBLE[PREAMBLE_LENGTH] = {
@@ -35,10 +45,18 @@ const int PREAMBLE[PREAMBLE_LENGTH] = {
 constexpr int SYNC_LENGTH = 8;
 const int SYNC[SYNC_LENGTH] = {1,1,0,1,0,0,1,0};
 
+// Audio TX Stuff
+
+constexpr int TX_BUFFER_SIZE = 256;
+int16_t txBuffer[TX_BUFFER_SIZE];
+
+
+
+
 
 void setupI2S() {
     i2s_config_t config = {};
-    config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_TX);
+    config.mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
 
     config.sample_rate = SAMPLE_RATE;
     config.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT;
@@ -240,15 +258,8 @@ void printPayloadAsAscii(const int *bits, int start, int length) {
     Serial.println();
 }
 
-void setup() {
-    Serial.begin(115200);
-    delay(500);
+void listen() {
 
-    Serial.printf("Window size: %d\n", WINDOW_SIZE);
-    setupI2S();
-}
-
-void loop() {
     size_t bytesRead = 0;
 
     esp_err_t err = i2s_read(I2S_PORT, i2sBuffer, sizeof(i2sBuffer),
@@ -331,4 +342,43 @@ void loop() {
         }
     }
 
+}
+
+
+void playTone(float frequency) {
+    static float phase = 0.0f;
+
+    constexpr float amplitude = 10000.0f;
+
+    for (int i = 0; i < TX_BUFFER_SIZE; i++) {
+        txBuffer[i] = (int16_t)(amplitude * sinf(phase));
+        phase += 2 * PI * frequency / SAMPLE_RATE;
+
+        if (phase >= 2 * PI) {
+            phase-=2*PI;
+        }
+    }
+
+    size_t bytesWritten = 0;
+
+    i2s_write(I2S_PORT, txBuffer, sizeof(txBuffer), &bytesWritten,
+              portMAX_DELAY
+    );
+
+
+
+}
+
+
+
+void setup() {
+    Serial.begin(115200);
+    delay(500);
+
+    Serial.printf("Window size: %d\n", WINDOW_SIZE);
+    setupI2S();
+}
+
+void loop() {
+    playTone(1800.f);
 }
