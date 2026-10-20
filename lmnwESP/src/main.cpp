@@ -345,25 +345,37 @@ void listen() {
 }
 
 
-void playTone(float frequency) {
+void playTone(float frequency, int duration) { //duration in ms
+    const float amplitude = 10000.f;
     static float phase = 0.0f;
 
-    constexpr float amplitude = 10000.0f;
+    const float phaseIncrement = 2.0f * PI * frequency / SAMPLE_RATE;
 
-    for (int i = 0; i < TX_BUFFER_SIZE; i++) {
-        txBuffer[i] = (int16_t)(amplitude * sinf(phase));
-        phase += 2 * PI * frequency / SAMPLE_RATE;
+    const int totalSamples = SAMPLE_RATE * duration / 1000;
 
-        if (phase >= 2 * PI) {
-            phase-=2*PI;
+    int samplesWritten = 0;
+
+    while (samplesWritten < totalSamples) {
+
+        for (int i = 0; i < TX_BUFFER_SIZE; i++) {
+            txBuffer[i] = (int16_t)(amplitude * sinf(phase));
+            phase += phaseIncrement;
+
+            if (phase >= 2 * PI) {
+                phase-=2*PI;
+            }
         }
+
+        size_t bytesWritten = 0;
+
+        i2s_write(I2S_PORT, txBuffer, sizeof(txBuffer), &bytesWritten,
+                    portMAX_DELAY
+        );
+
+        samplesWritten += bytesWritten / sizeof(int16_t);
     }
 
-    size_t bytesWritten = 0;
 
-    i2s_write(I2S_PORT, txBuffer, sizeof(txBuffer), &bytesWritten,
-              portMAX_DELAY
-    );
 
 
 
@@ -380,5 +392,9 @@ void setup() {
 }
 
 void loop() {
-    playTone(1800.f);
+    playTone(1800.f, 100);
+    delay(500);
+
+    playTone(2200.f, 100);
+    delay(500);
 }
