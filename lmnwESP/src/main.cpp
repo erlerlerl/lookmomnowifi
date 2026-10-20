@@ -49,6 +49,7 @@ const int SYNC[SYNC_LENGTH] = {1,1,0,1,0,0,1,0};
 
 constexpr int TX_BUFFER_SIZE = 256;
 int16_t txBuffer[TX_BUFFER_SIZE];
+const float AMPLITUDE = 2000.0f;
 
 
 
@@ -346,7 +347,7 @@ void listen() {
 
 
 void playTone(float frequency, int duration) { //duration in ms
-    const float amplitude = 10000.f;
+    // const float amplitude = 10000.f;
     static float phase = 0.0f;
 
     const float phaseIncrement = 2.0f * PI * frequency / SAMPLE_RATE;
@@ -358,7 +359,7 @@ void playTone(float frequency, int duration) { //duration in ms
     while (samplesWritten < totalSamples) {
 
         for (int i = 0; i < TX_BUFFER_SIZE; i++) {
-            txBuffer[i] = (int16_t)(amplitude * sinf(phase));
+            txBuffer[i] = (int16_t)(AMPLITUDE * sinf(phase));
             phase += phaseIncrement;
 
             if (phase >= 2 * PI) {
@@ -382,6 +383,11 @@ void sendBit(int bit) {
    playTone(frequency, BITLENGTH);
 }
 
+void sendBits(const int *bits, int length) {
+    for (int i = 0; i < length; i++) {
+        sendBit(bits[i]);
+  }
+}
 
 
 void setup() {
@@ -393,9 +399,6 @@ void setup() {
 }
 
 void loop() {
-    sendBit(1);
-    delay(500);
-
-    sendBit(0);
+    sendBits(SYNC, SYNC_LENGTH);
     delay(500);
 }
