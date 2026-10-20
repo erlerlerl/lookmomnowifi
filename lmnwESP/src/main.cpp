@@ -399,6 +399,8 @@ void setup() {
 }
 
 void loop() {
+    sendBits(PREAMBLE, PREAMBLE_LENGTH);
     sendBits(SYNC, SYNC_LENGTH);
+
     delay(500);
 }
