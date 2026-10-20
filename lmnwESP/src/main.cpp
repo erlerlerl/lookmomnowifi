@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Protocol.hpp"
+#include "PacketDecoder.hpp"
 #include "driver/i2s.h"
 
 // Ports
@@ -165,81 +166,13 @@ bool hasPacketHeader(const int *bits, int bitCount) {
     return false;
 }
 
-int bitsToInt(const int *bits, int start, int count) {
-    int value = 0;
 
-    for (int i = 0; i < count; i++) {
-        value = (value << 1) | bits[start+i];
-    }
-
-    return value;
-}
-
-int findPacketHeader(const int *bits, int bitCount) {
-    constexpr int HEADER_LENGTH = PREAMBLE_LENGTH + SYNC_LENGTH;
-
-    if (bitCount < HEADER_LENGTH) {
-        return -1;
-    }
-
-    for (int start = 0; start <= bitCount - HEADER_LENGTH; start++) {
-        bool match = true;
-
-        //check preamble
-        for (int j = 0; j < PREAMBLE_LENGTH; j++) {
-            if (bits[start + j] != PREAMBLE[j]) {
-                match = false;
-                break;
-          }
-        }
-
-        if (!match) {
-            continue;
-        }
-
-        for (int j = 0; j < SYNC_LENGTH; j++) {
-            if (bits[start + PREAMBLE_LENGTH + j] != SYNC[j]) {
-                match = false;
-                break;
-          }
-        }
-
-        if (match) {
-            return start;
-        }
-
-    }
-
-    return -1;
-}
-
-int calculateChecksum(const int *bits, int start, int length) {
-    int checksum = 0;
-
-    for (int offset = 0; offset < length; offset += 8) {
-        int groupLength = length - offset;
-
-        if (groupLength > 8) {
-            groupLength = 8;
-        }
-
-        int value = bitsToInt(bits, start + offset, groupLength);
-
-        if (groupLength < 8) {
-            value <<= (8-groupLength);
-        }
-
-        checksum ^= value;
-    }
-
-    return checksum;
-}
 
 void printPayloadAsAscii(const int *bits, int start, int length) {
     Serial.print("Message: ");
 
     for (int offset = 0; offset + 8 <= length; offset += 8) {
-        int value = bitsToInt(bits, start + offset, 8);
+        int value = PacketDecoder::bitsToInt(bits, start + offset, 8);
         Serial.write((uint8_t)value);
     }
     Serial.println();
@@ -288,25 +221,25 @@ void listen() {
                     //     Serial.printf("Packet-Header registered!");
                     // }
                     int headerStart =
-                        findPacketHeader(receivedBits, receivedBitCount);
+                        PacketDecoder::findPacketHeader(receivedBits, receivedBitCount);
 
                     if (headerStart >= 0) {
                       int lengthStart =
                           headerStart + PREAMBLE_LENGTH + SYNC_LENGTH;
 
                       if (receivedBitCount >= lengthStart + 8){
-                            int payloadLength = bitsToInt(receivedBits, lengthStart, 8);
+                            int payloadLength = PacketDecoder::bitsToInt(receivedBits, lengthStart, 8);
 
                             int payloadStart = lengthStart + 8;
                             int payloadEnd = payloadStart + payloadLength;
                             int checksumEnd = payloadEnd + 8;
 
                             if (checksumEnd <= receivedBitCount) {
-                              int expectedChecksum = calculateChecksum(
+                              int expectedChecksum = PacketDecoder::calculateChecksum(
                                   receivedBits, payloadStart, payloadLength);
 
                               int receivedChecksum =
-                                  bitsToInt(receivedBits, payloadEnd, 8);
+                                  PacketDecoder::bitsToInt(receivedBits, payloadEnd, 8);
 
                               if (expectedChecksum == receivedChecksum) {
                                   Serial.println("CheckSum OK!");
