@@ -133,7 +133,6 @@
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/esp_hw_support/include/soc/esp32/spiram.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/cores/esp32/io_pin_remap.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/cores/esp32/Arduino.h \
- lmnwESP/include/Protocol.hpp lmnwESP/include/PacketDecoder.hpp \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/driver/include/driver/i2s.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/soc/include/soc/i2s_periph.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/soc/esp32/include/soc/periph_defs.h \
@@ -150,4 +149,6 @@
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/hal/include/hal/i2s_types.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/driver/include/driver/periph_ctrl.h \
  /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/driver/include/driver/adc.h \
- /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/hal/include/hal/adc_types.h
+ /Users/ricardorodrigues/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/hal/include/hal/adc_types.h \
+ lmnwESP/include/Protocol.hpp lmnwESP/include/PacketDecoder.hpp \
+ lmnwESP/include/AudioTransmitter.hpp

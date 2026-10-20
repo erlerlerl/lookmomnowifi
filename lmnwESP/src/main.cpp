@@ -1,7 +1,9 @@
 #include <Arduino.h>
+#include "driver/i2s.h"
+
 #include "Protocol.hpp"
 #include "PacketDecoder.hpp"
-#include "driver/i2s.h"
+#include "AudioTransmitter.hpp"
 
 // Ports
 
@@ -32,12 +34,8 @@ constexpr int MAX_RECEIVED_BITS = 4096;
 int receivedBits[MAX_RECEIVED_BITS];
 int receivedBitCount = 0;
 
-// Audio TX Stuff
 
-constexpr int TX_BUFFER_SIZE = 256;
-int16_t txBuffer[TX_BUFFER_SIZE];
-const float AMPLITUDE = 2000.0f;
-
+AudioTransmitter transmitter(I2S_PORT);
 
 
 
@@ -265,49 +263,6 @@ void listen() {
 }
 
 
-void playTone(float frequency, int duration) { //duration in ms
-    // const float amplitude = 10000.f;
-    static float phase = 0.0f;
-
-    const float phaseIncrement = 2.0f * PI * frequency / SAMPLE_RATE;
-
-    const int totalSamples = SAMPLE_RATE * duration / 1000;
-
-    int samplesWritten = 0;
-
-    while (samplesWritten < totalSamples) {
-
-        for (int i = 0; i < TX_BUFFER_SIZE; i++) {
-            txBuffer[i] = (int16_t)(AMPLITUDE * sinf(phase));
-            phase += phaseIncrement;
-
-            if (phase >= 2 * PI) {
-                phase-=2*PI;
-            }
-        }
-
-        size_t bytesWritten = 0;
-
-        i2s_write(I2S_PORT, txBuffer, sizeof(txBuffer), &bytesWritten,
-                    portMAX_DELAY
-        );
-
-        samplesWritten += bytesWritten / sizeof(int16_t);
-    }
-
-}
-
-void sendBit(int bit) {
-   const float frequency = bit == 0 ? FREQ_0 : FREQ_1;
-   playTone(frequency, BITLENGTH);
-}
-
-void sendBits(const int *bits, int length) {
-    for (int i = 0; i < length; i++) {
-        sendBit(bits[i]);
-  }
-}
-
 
 void setup() {
     Serial.begin(115200);
@@ -318,8 +273,8 @@ void setup() {
 }
 
 void loop() {
-    sendBits(PREAMBLE, PREAMBLE_LENGTH);
-    sendBits(SYNC, SYNC_LENGTH);
+    transmitter.sendBits(PREAMBLE, PREAMBLE_LENGTH);
+    transmitter.sendBits(SYNC, SYNC_LENGTH);
 
     delay(500);
 }
