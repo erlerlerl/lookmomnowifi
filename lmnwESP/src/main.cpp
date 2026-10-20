@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "Protocol.hpp"
 #include "driver/i2s.h"
 
 // Ports
@@ -13,8 +14,6 @@ constexpr int I2S_DOUT = 22;
 constexpr i2s_port_t I2S_PORT = I2S_NUM_0;
 constexpr int FRAMES = 256;
 int32_t i2sBuffer[FRAMES];
-constexpr int SAMPLE_RATE = 48000;
-constexpr int BITLENGTH = 50;
 constexpr int WINDOW_SIZE = SAMPLE_RATE * BITLENGTH / 1000;
 float windowBuffer[WINDOW_SIZE];
 int windowIndex = 0;
@@ -24,8 +23,6 @@ int windowIndex = 0;
 constexpr float THRESHOLD = 0.01f;
 constexpr float POWER_THRESHOLD = 100.0f;
 
-constexpr float FREQ_0 = 1800.f;
-constexpr float FREQ_1 = 2200.f;
 
 // Packet RX Stuff
 
@@ -33,17 +30,6 @@ constexpr int MAX_RECEIVED_BITS = 4096;
 
 int receivedBits[MAX_RECEIVED_BITS];
 int receivedBitCount = 0;
-
-// Packet Information General
-
-constexpr int PREAMBLE_LENGTH = 16;
-const int PREAMBLE[PREAMBLE_LENGTH] = {
-1,0,1,0,1,0,1,0,
-1,0,1,0,1,0,1,0
-};
-
-constexpr int SYNC_LENGTH = 8;
-const int SYNC[SYNC_LENGTH] = {1,1,0,1,0,0,1,0};
 
 // Audio TX Stuff
 
