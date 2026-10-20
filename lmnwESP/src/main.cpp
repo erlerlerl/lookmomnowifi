@@ -375,10 +375,11 @@ void playTone(float frequency, int duration) { //duration in ms
         samplesWritten += bytesWritten / sizeof(int16_t);
     }
 
+}
 
-
-
-
+void sendBit(int bit) {
+   const float frequency = bit == 0 ? FREQ_0 : FREQ_1;
+   playTone(frequency, BITLENGTH);
 }
 
 
@@ -392,9 +393,9 @@ void setup() {
 }
 
 void loop() {
-    playTone(1800.f, 100);
+    sendBit(1);
     delay(500);
 
-    playTone(2200.f, 100);
+    sendBit(0);
     delay(500);
 }
